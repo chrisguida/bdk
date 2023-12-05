@@ -2006,17 +2006,35 @@ impl<D> Wallet<D> {
     pub fn apply_block_relevant(
         &mut self,
         block: Block,
+        prev_block_id: Option<BlockId>,
         height: u32,
     ) -> Result<(), CannotConnectError>
     where
         D: PersistBackend<ChangeSet>,
     {
-        let chain_update = CheckPoint::from_header(&block.header, height).into_update(false);
+        println!("1");
+        // let chain_update = CheckPoint::from_header(&block.header, height).into_update(true);
+        let this_block_id = BlockId {
+            height,
+            hash: block.block_hash(),
+        };
+
+        let chain_update = match prev_block_id {
+            Some(b) => CheckPoint::new(b)
+                .push(this_block_id)
+                .expect("must construct checkpoint")
+                .into_update(true),
+            None => CheckPoint::new(this_block_id).into_update(true),
+        };
+        // println!("applying chain_update {:?}", chain_update);
         let mut changeset = ChangeSet::from(self.chain.apply_update(chain_update)?);
+        println!("3");
         changeset.append(ChangeSet::from(
             self.indexed_graph.apply_block_relevant(block, height),
         ));
+        println!("4");
         self.persist.stage(changeset);
+        println!("5");
         Ok(())
     }
 
