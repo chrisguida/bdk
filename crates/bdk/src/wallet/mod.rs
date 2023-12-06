@@ -2012,7 +2012,7 @@ impl<D> Wallet<D> {
     where
         D: PersistBackend<ChangeSet>,
     {
-        println!("1");
+        // println!("1");
         // let chain_update = CheckPoint::from_header(&block.header, height).into_update(true);
         let this_block_id = BlockId {
             height,
@@ -2028,13 +2028,13 @@ impl<D> Wallet<D> {
         };
         // println!("applying chain_update {:?}", chain_update);
         let mut changeset = ChangeSet::from(self.chain.apply_update(chain_update)?);
-        println!("3");
+        // println!("3");
         changeset.append(ChangeSet::from(
             self.indexed_graph.apply_block_relevant(block, height),
         ));
-        println!("4");
+        // println!("4");
         self.persist.stage(changeset);
-        println!("5");
+        // println!("5");
         Ok(())
     }
 

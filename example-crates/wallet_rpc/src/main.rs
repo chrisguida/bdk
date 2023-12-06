@@ -98,11 +98,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     wallet.set_lookahead_for_all(args[4].parse::<u32>()?)?;
 
-    // let chain_tip = wallet.latest_checkpoint();
-    // let mut emitter = match chain_tip {
-    //     Some(cp) => Emitter::from_checkpoint(&rpc_client, cp),
-    //     None => Emitter::from_height(&rpc_client, args[5].parse::<u32>()?),
-    // };
+    let chain_tip = wallet.latest_checkpoint();
+    let mut emitter = match chain_tip {
+        Some(cp) => Emitter::from_checkpoint(&rpc_client, cp),
+        None => Emitter::from_height(&rpc_client, args[5].parse::<u32>()?),
+    };
 
     let mut prev_block_id = None;
 
@@ -122,11 +122,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     wallet.commit()?;
     // }
 
-    // println!("About to apply unconfirmed transactions: ...");
-    // let unconfirmed_txs = emitter.mempool()?;
-    // println!("Applying unconfirmed transactions: ...");
-    // wallet.batch_insert_relevant_unconfirmed(unconfirmed_txs.iter().map(|(tx, time)| (tx, *time)));
-    // wallet.commit()?;
+    println!("About to apply unconfirmed transactions: ...");
+    let unconfirmed_txs = emitter.mempool()?;
+    println!("Applying unconfirmed transactions: ...");
+    wallet.batch_insert_relevant_unconfirmed(unconfirmed_txs.iter().map(|(tx, time)| (tx, *time)));
+    wallet.commit()?;
 
     let balance = wallet.get_balance();
     println!("Wallet balance after syncing: {} sats", balance.total());

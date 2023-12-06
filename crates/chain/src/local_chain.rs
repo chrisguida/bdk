@@ -315,15 +315,15 @@ impl LocalChain {
     pub fn apply_update(&mut self, update: Update) -> Result<ChangeSet, CannotConnectError> {
         match self.tip() {
             Some(original_tip) => {
-                println!("apply_update 1");
-                println!("original_tip = {:?}", original_tip);
-                println!("update tip = {:?}", update.tip.clone());
+                // println!("apply_update 1");
+                // println!("original_tip = {:?}", original_tip);
+                // println!("update tip = {:?}", update.tip.clone());
                 let changeset = merge_chains(
                     original_tip,
                     update.tip.clone(),
                     update.introduce_older_blocks,
                 )?;
-                println!("apply_update 2");
+                // println!("apply_update 2");
                 self.apply_changeset(&changeset);
 
                 // return early as `apply_changeset` already calls `check_consistency`
@@ -512,8 +512,8 @@ fn merge_chains(
     let mut point_of_agreement_found = false;
     let mut prev_orig_was_invalidated = false;
     let mut potentially_invalidated_heights = vec![];
-    println!("merge_chains start");
-    println!("update = {:?}", update_clone);
+    //println!("merge_chains start");
+    //println!("update = {:?}", update_clone);
 
     // To find the difference between the new chain and the original we iterate over both of them
     // from the tip backwards in tandem. We always dealing with the highest one from either chain
@@ -521,32 +521,32 @@ fn merge_chains(
     // same height.
     loop {
         if curr_orig.is_none() {
-            println!("merge_chains 2");
+            //println!("merge_chains 2");
             curr_orig = orig.next();
         }
         if curr_update.is_none() {
-            println!("merge_chains 3");
+            //println!("merge_chains 3");
             curr_update = update.next();
         }
-        println!(
-            "iteration step: curr_orig = {:?}, curr_update = {:?}",
-            curr_orig, curr_update
-        );
-        println!(
-            "iteration step: prev_orig = {:?}, prev_update = {:?}",
-            prev_orig, prev_update
-        );
+        //println!(
+        //     "iteration step: curr_orig = {:?}, curr_update = {:?}",
+        //     curr_orig, curr_update
+        // );
+        //println!(
+        //     "iteration step: prev_orig = {:?}, prev_update = {:?}",
+        //     prev_orig, prev_update
+        // );
 
         match (curr_orig.as_ref(), curr_update.as_ref()) {
             // Update block that doesn't exist in the original chain
             (o, Some(u)) if Some(u.height()) > o.map(|o| o.height()) => {
-                println!("merge_chains 5");
+                //println!("merge_chains 5");
                 changeset.insert(u.height(), Some(u.hash()));
                 prev_update = curr_update.take();
             }
             // Original block that isn't in the update
             (Some(o), u) if Some(o.height()) > u.map(|u| u.height()) => {
-                println!("merge_chains 6");
+                //println!("merge_chains 6");
                 // this block might be gone if an earlier block gets invalidated
                 potentially_invalidated_heights.push(o.height());
                 prev_orig_was_invalidated = false;
@@ -560,7 +560,7 @@ fn merge_chains(
             }
             (Some(o), Some(u)) => {
                 if o.hash() == u.hash() {
-                    println!("merge_chains 7");
+                    //println!("merge_chains 7");
                     // We have found our point of agreement 🎉 -- we require that the previous (i.e.
                     // higher because we are iterating backwards) block in the original chain was
                     // invalidated (if it exists). This ensures that there is an unambiguous point of
@@ -583,7 +583,7 @@ fn merge_chains(
                         return Ok(changeset);
                     }
                 } else {
-                    println!("merge_chains 8");
+                    //println!("merge_chains 8");
                     // We have an invalidation height so we set the height to the updated hash and
                     // also purge all the original chain block hashes above this block.
                     changeset.insert(u.height(), Some(u.hash()));
@@ -596,7 +596,7 @@ fn merge_chains(
                 prev_orig = curr_orig.take();
             }
             (None, None) => {
-                println!("merge_chains 9");
+                //println!("merge_chains 9");
                 break;
             }
             _ => {
@@ -610,7 +610,7 @@ fn merge_chains(
     // just means making sure the entire original chain was invalidated.
     if !prev_orig_was_invalidated && !point_of_agreement_found {
         if let Some(prev_orig) = prev_orig {
-            println!("merge_chains 10");
+            //println!("merge_chains 10");
             return Err(CannotConnectError {
                 try_include_height: prev_orig.height(),
             });
